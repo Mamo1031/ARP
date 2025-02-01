@@ -1,0 +1,16 @@
+# Compiled binaries
+bin/
+*.out
+*.o
+
+# Logs
+logs/
+
+# Named pipes (FIFO)
+pipes/
+
+# macOS system files
+.DS_Store
+
+# VS Code settings
+.vscode/
