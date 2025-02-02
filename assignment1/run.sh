@@ -63,10 +63,12 @@ OBSTACLES_GENERATOR_PID=$!
 TARGETS_GENERATOR_PID=$!
 
 # Start two instances of window_manager for different views in separate konsole windows
-konsole -e ./bin/window_manager map & 
+#konsole -e ./bin/window_manager map & 
+lxterminal -e ./bin/window_manager map & 
 WINDOW_MANAGER_MAP_PID=$!
 
-konsole -e ./bin/window_manager input & 
+#konsole -e ./bin/window_manager input & 
+lxterminal -e ./bin/window_manager input & 
 WINDOW_MANAGER_INPUT_PID=$!
 
 # Wait for all processes

@@ -74,6 +74,8 @@ assignment/
 
 
 ## Running
+0. If needed, specify the terminal emulator your are using instead of `konsole`, in `run.sh`, lines 66 and 69.
+
 1. Make sure `run.sh` is executable:
     ```bash
    chmod +x run.sh
