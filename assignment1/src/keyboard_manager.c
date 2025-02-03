@@ -7,6 +7,8 @@
 
 #define DEFAULT_BUFFER_SIZE 256
 
+#define WATCHDOG_PIPE_NAME "pipes/pipe_to_watchdog" 
+
 int read_buffer_size(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -51,8 +53,13 @@ int main(int argc, char *argv[]) {
 
     int buffer_size = read_buffer_size("./config/parameters.txt");
     char buffer[buffer_size];
-    int pipe_fd = open(argv[1], O_WRONLY);
 
+    int wd_fd = open(WATCHDOG_PIPE_NAME, O_WRONLY);
+    if (wd_fd == -1) {
+        perror("Failed to open watchdog pipe in keyboard_manager");
+    }
+
+    int pipe_fd = open(argv[1], O_WRONLY);
     if (pipe_fd == -1) {
         perror("Failed to open pipe");
         return EXIT_FAILURE;
@@ -84,6 +91,20 @@ int main(int argc, char *argv[]) {
             perror("Failed to write to pipe");
             break;
         }
+
+        // Notify Watchdog
+        if (wd_fd != -1) {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "HEARTBEAT,drone_dynamics,%d", getpid());
+
+            ssize_t ret = write(wd_fd, msg, strlen(msg)+1);
+            if(ret < 0) {
+                perror("Failed to write");
+            } else if(ret < strlen(msg)+1) {
+                fprintf(stderr, "Partial write: %ld/%ld bytes\n", (long)ret, (long)strlen(msg)+1);
+            }
+        }
+
         printf("Command sent: %s\n", buffer);
     }
 

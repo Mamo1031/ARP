@@ -12,6 +12,8 @@
 #define DEFAULT_OBSTACLE_REPULSION 0.1
 #define DEFAULT_TIME_STEP_MS 50
 
+#define WATCHDOG_PIPE_NAME "pipes/pipe_to_watchdog" 
+
 typedef struct {
     int geometric_boundary;
     int obstacle_radius;
@@ -62,6 +64,11 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    int wd_fd = open(WATCHDOG_PIPE_NAME, O_WRONLY);
+    if (wd_fd == -1) {
+        perror("Failed to open watchdog pipe in obstacles_generator");
+    }
+
     // Open the named pipe for writing
     pipe_fd = open(argv[1], O_WRONLY);
     if (pipe_fd == -1) {
@@ -86,6 +93,19 @@ int main(int argc, char *argv[]) {
         if (bytes_written == -1) {
             perror("Failed to write to pipe");
             break; // Exit loop on error
+        }
+
+        // Notify Watchdog
+        if (wd_fd != -1) {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "HEARTBEAT,obstacles_generator,%d", getpid());
+
+            ssize_t ret = write(wd_fd, msg, strlen(msg)+1);
+            if(ret < 0) {
+                perror("Failed to write");
+            } else if(ret < strlen(msg)+1) {
+                fprintf(stderr, "Partial write: %ld/%ld bytes\n", (long)ret, (long)strlen(msg)+1);
+            }
         }
 
         printf("Obstacle generated at (%d, %d)\n", obstacle_x, obstacle_y);
