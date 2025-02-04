@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
             case 'v': strcpy(buffer, "DOWN"); break;
             case 'c': strcpy(buffer, "DOWN-LEFT"); break;
             case 'd': strcpy(buffer, "LEFT"); break;
-            case 'e': strcpy(buffer, "TEST"); break;
+            case 'e': strcpy(buffer, "UP-LEFT"); break;
             default: continue;
         }
 
