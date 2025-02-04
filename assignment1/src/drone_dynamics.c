@@ -98,9 +98,14 @@ int main(int argc, char *argv[]) {
         if (bytes_read > 0) {
             buffer[bytes_read] = '\0'; // Null-terminate the string
             if (strcmp(buffer, "UP") == 0) drone.fy += 1.0;
-            else if (strcmp(buffer, "DOWN") == 0) drone.fy -= 1.0;
-            else if (strcmp(buffer, "LEFT") == 0) drone.fx -= 1.0;
+            else if (strcmp(buffer, "UP-RIGHT") == 0) {drone.fy += 1.0/sqrt(2.0); drone.fx += 1.0/sqrt(2.0);}
             else if (strcmp(buffer, "RIGHT") == 0) drone.fx += 1.0;
+            else if (strcmp(buffer, "DOWN-RIGHT") == 0) {drone.fy -= 1.0/sqrt(2.0); drone.fx += 1.0/sqrt(2.0);}
+            else if (strcmp(buffer, "DOWN") == 0) drone.fy -= 1.0;
+            else if (strcmp(buffer, "DOWN-LEFT") == 0) {drone.fy -= 1.0/sqrt(2.0); drone.fx -= 1.0/sqrt(2.0);}
+            else if (strcmp(buffer, "LEFT") == 0) drone.fx -= 1.0;
+            else if (strcmp(buffer, "UP-LEFT") == 0) {drone.fy += 1.0/sqrt(2.0); drone.fx += 1.0/sqrt(2.0);}
+            
 
             printf("Command received: %s\n", buffer);
         } else if (bytes_read == -1) {

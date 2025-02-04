@@ -10,7 +10,7 @@
 #define DEFAULT_GEOMETRIC_BOUNDARY 100
 #define DEFAULT_OBSTACLE_RADIUS 5
 #define DEFAULT_OBSTACLE_REPULSION 0.1
-#define DEFAULT_TIME_STEP_MS 50
+#define DEFAULT_TIME_STEP_MS 3000
 
 typedef struct {
     int geometric_boundary;

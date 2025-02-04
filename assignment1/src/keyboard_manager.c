@@ -72,10 +72,14 @@ int main(int argc, char *argv[]) {
 
         // Map commands to actions
         switch (command) {
-            case 'w': strcpy(buffer, "UP"); break;
-            case 's': strcpy(buffer, "DOWN"); break;
-            case 'a': strcpy(buffer, "LEFT"); break;
-            case 'd': strcpy(buffer, "RIGHT"); break;
+            case 'r': strcpy(buffer, "UP"); break;
+            case 't': strcpy(buffer, "UP-RIGHT"); break;
+            case 'g': strcpy(buffer, "RIGHT"); break;
+            case 'b': strcpy(buffer, "DOWN-RIGHT"); break;
+            case 'v': strcpy(buffer, "DOWN"); break;
+            case 'c': strcpy(buffer, "DOWN-LEFT"); break;
+            case 'd': strcpy(buffer, "LEFT"); break;
+            case 'e': strcpy(buffer, "TEST"); break;
             default: continue;
         }
 
