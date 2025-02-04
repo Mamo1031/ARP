@@ -94,7 +94,7 @@ assignment/
 
 
 ## Usage
-- Keyboard Manager: Press `w/a/s/d` keys to control the drone. Press `q` to quit.
+- Keyboard Manager: Press `e/r/t/g/b/v/c/d` keys to control the drone. Press `q` to quit.
 - Watchdog: Automatically monitors other processes via heartbeats. If a process fails to send a heartbeat, the watchdog logs an error and exits the system.
 - Drone Dynamics: Receives commands, applies forces, and updates the drone position and velocity.
 - Obstacles/Targets Generators: Periodically send obstacle or target data to the blackboard.
