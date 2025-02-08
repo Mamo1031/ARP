@@ -14,8 +14,6 @@
 
 #define WATCHDOG_PIPE_NAME "pipes/pipe_to_watchdog" 
 
-#define WATCHDOG_PIPE_NAME "pipes/pipe_to_watchdog" 
-
 typedef struct {
     int geometric_boundary;
     int obstacle_radius;
