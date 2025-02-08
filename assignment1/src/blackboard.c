@@ -107,13 +107,17 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    int wd_fd = open(WATCHDOG_PIPE_NAME, O_WRONLY);
+    if (wd_fd == -1) {
+        perror("Failed to open watchdog pipe in blackboard");
+    }
+
     int max_clients, buffer_size;
     double drone_mass, viscous_coeff;
     read_parameters(argv[1], &max_clients, &buffer_size, &drone_mass, &viscous_coeff);
 
     // List of named pipes to read from
     const char *pipe_names[] = {
-        WATCHDOG_PIPE_NAME,
         KEYBOARD_PIPE_NAME,
         DRONE_PIPE_NAME,
         OBSTACLES_PIPE_NAME,
@@ -174,6 +178,19 @@ int main(int argc, char *argv[]) {
 
         // Write the current blackboard state to the named pipe
         write_to_pipe(write_pipe_fd, &bb);
+
+        // Notify Watchdog
+        if (wd_fd != -1) {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "HEARTBEAT,blackboard,%d", getpid());
+
+            ssize_t ret = write(wd_fd, msg, strlen(msg)+1);
+            if(ret < 0) {
+                perror("Failed to write");
+            } else if(ret < strlen(msg)+1) {
+                fprintf(stderr, "Partial write: %ld/%ld bytes\n", (long)ret, (long)strlen(msg)+1);
+            }
+        }
     }
 
     // Close all pipe file descriptors

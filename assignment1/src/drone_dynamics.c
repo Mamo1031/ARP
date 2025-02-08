@@ -12,6 +12,8 @@
 #define DEFAULT_TIMESTEP 50 // in milliseconds
 #define DEFAULT_BOUNDARY 100
 
+#define WATCHDOG_PIPE_NAME "pipes/pipe_to_watchdog" 
+
 // Structure to hold drone state
 typedef struct {
     double x, y;       // Position
@@ -83,6 +85,11 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    int wd_fd = open(WATCHDOG_PIPE_NAME, O_WRONLY);
+    if (wd_fd == -1) {
+        perror("Failed to open watchdog pipe in drone_dynamics");
+    }
+
     // Open the named pipe
     pipe_fd = open(argv[1], O_RDONLY);
     if (pipe_fd == -1) {
@@ -115,6 +122,19 @@ int main(int argc, char *argv[]) {
 
         // Update drone dynamics
         update_dynamics(&drone, mass, viscosity, timestep);
+
+        // Notify Watchdog
+        if (wd_fd != -1) {
+            char msg[64];
+            snprintf(msg, sizeof(msg), "HEARTBEAT,drone_dynamics,%d", getpid());
+
+            ssize_t ret = write(wd_fd, msg, strlen(msg)+1);
+            if(ret < 0) {
+                perror("Failed to write");
+            } else if(ret < strlen(msg)+1) {
+                fprintf(stderr, "Partial write: %ld/%ld bytes\n", (long)ret, (long)strlen(msg)+1);
+            }
+        }
 
         // Print drone state
         printf("Drone Position: (%.2f, %.2f), Velocity: (%.2f, %.2f)\n",
