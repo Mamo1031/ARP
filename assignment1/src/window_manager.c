@@ -90,6 +90,74 @@ void display_input_dynamics(int pipe_fd) {
 
         mvprintw(0, 0, "INPUT DISPLAY");
         mvprintw(1, 0, "Dynamics Data: %s", buffer);
+        
+        for (int i=2;i<14;i++) ///////////////////////////////////////////// Bertille
+		{
+			mvprintw(2, i, "_");
+			mvprintw(5, i, "_");
+			mvprintw(8, i, "_");
+			mvprintw(11, i, "_");
+		}
+		mvprintw(2, 2, ".");
+		mvprintw(2, 6, ".");
+		mvprintw(2, 10, ".");
+		mvprintw(2, 14, ".");
+		for (int j=3; j<12; j++)
+		{
+			mvprintw(j, 2, "|");
+			mvprintw(j, 6, "|");
+			mvprintw(j, 10, "|");
+			mvprintw(j, 14, "|");
+		}
+		mvprintw(3, 4, "_"); // Top Left
+		mvprintw(4, 3, "'");
+		mvprintw(4, 4, "\\");
+		mvprintw(3, 8, "A"); // Top
+		mvprintw(4, 8, "|");
+		mvprintw(3, 12, "_"); // Top Right
+		mvprintw(4, 12, "/");
+		mvprintw(4, 13, "'");
+		mvprintw(7, 12, "-"); // Right
+		mvprintw(7, 13, ">");
+		mvprintw(10, 12, "\\"); // Bottom Right
+		mvprintw(10, 13, "|");
+		mvprintw(11, 12, "'");
+		mvprintw(10, 8, "|"); // Bottom
+		mvprintw(11, 8, "V");
+		mvprintw(10, 4, "/"); // Bottom Left
+		mvprintw(10, 3, "|");
+		mvprintw(11, 4, "'");
+		mvprintw(7, 4, "-"); // Left
+		mvprintw(7, 3, "<");
+		mvprintw(7, 8, "@"); 
+		
+	for (int i=2;i<14;i++) ///////////////////////////////////////////// Bertille
+		{
+			mvprintw(13, i, "_");
+			mvprintw(16, i, "_");
+			mvprintw(19, i, "_");
+			mvprintw(22, i, "_");
+		}
+		mvprintw(13, 2, ".");
+		mvprintw(13, 6, ".");
+		mvprintw(13, 10, ".");
+		mvprintw(13, 14, ".");
+		for (int j=14; j<23; j++)
+		{
+			mvprintw(j, 2, "|");
+			mvprintw(j, 6, "|");
+			mvprintw(j, 10, "|");
+			mvprintw(j, 14, "|");
+		}
+		mvprintw(15, 4, "E"); // Top Left
+		mvprintw(15, 8, "R"); // Top
+		mvprintw(15, 12, "T"); // Top Right
+		mvprintw(18, 12, "G"); // Right
+		mvprintw(21, 12, "B"); // Bottom Right
+		mvprintw(21, 8, "V"); // Bottom
+		mvprintw(21, 4, "C"); // Bottom Left
+		mvprintw(18, 4, "D"); // Left
+		mvprintw(18, 8, "F"); // On/Off
 
         refresh();
         usleep(50000);
