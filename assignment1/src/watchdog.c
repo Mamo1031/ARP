@@ -41,14 +41,39 @@ int read_parameters(const char *filename) {
     return timeout_sec;
 }
 
+// Initialize the process array
+void init_processes() {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        processes[i].process_id = -1;
+        processes[i].last_heartbeat = 0;
+    }
+}
+
+int find_or_allocate_process_index(int pid) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        if (processes[i].process_id == pid) {
+            return i; 
+        }
+    }
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        if (processes[i].process_id == -1) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 // Check if processes are alive
 void check_processes(int timeout_sec) {
     time_t current_time = time(NULL);
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        if (processes[i].process_id != -1 && current_time - processes[i].last_heartbeat > timeout_sec) {
-            fprintf(stderr, "Warning: Process %d timed out.\n", processes[i].process_id);
-            fprintf(stderr, "Stopping the system.\n");
-            exit(EXIT_FAILURE);
+        if (processes[i].process_id != -1) {
+            if (current_time - processes[i].last_heartbeat > timeout_sec) {
+                fprintf(stderr, "Warning: Process %d timed out.\n",
+                        processes[i].process_id);
+                fprintf(stderr, "Stopping the system.\n");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 }
@@ -58,6 +83,8 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Usage: %s <pipe_name>\n", argv[0]);
         return EXIT_FAILURE;
     }
+
+    init_processes();
 
     char *pipe_name = argv[1];
     int pipe_fd = open(pipe_name, O_RDONLY);
@@ -88,12 +115,26 @@ int main(int argc, char *argv[]) {
         current_time = time(NULL);
 
         if (FD_ISSET(pipe_fd, &read_fds)) {
-            if (read(pipe_fd, buffer, BUFFER_SIZE) > 0) {
+            ssize_t n = read(pipe_fd, buffer, BUFFER_SIZE - 1);
+            if (n > 0) {
+                buffer[n] = '\0';
+                char proc_name[32];
                 int process_id;
-                sscanf(buffer, "HEARTBEAT,%d", &process_id);
-                processes[process_id].process_id = process_id;
-                processes[process_id].last_heartbeat = current_time;
-                printf("Received heartbeat from Process %d at %ld\n", process_id, current_time);
+
+                if (sscanf(buffer, "HEARTBEAT,%[^,],%d", proc_name, &process_id) == 2) {
+                    int idx = find_or_allocate_process_index(process_id);
+                    if (idx == -1) {
+                        fprintf(stderr, 
+                          "Error: No more slots to track process %d.\n", process_id);
+                    } else {
+                        processes[idx].process_id = process_id;
+                        processes[idx].last_heartbeat = current_time;
+                        printf("Received heartbeat from %s (%d) at %ld\n",
+                                proc_name, process_id, current_time);
+                    }
+                } else {
+                    fprintf(stderr, "Invalid heartbeat format: %s\n", buffer);
+                }
             }
         }
 
