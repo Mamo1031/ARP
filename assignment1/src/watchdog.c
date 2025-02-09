@@ -69,10 +69,11 @@ void check_processes(int timeout_sec) {
     for (int i = 0; i < BUFFER_SIZE; i++) {
         if (processes[i].process_id != -1) {
             if (current_time - processes[i].last_heartbeat > timeout_sec) {
-                fprintf(stderr, "Warning: Process %d timed out.\n",
+                fprintf(stderr, "Warning: Process %d timed out. Removing from monitoring.\n",
                         processes[i].process_id);
-                fprintf(stderr, "Stopping the system.\n");
-                exit(EXIT_FAILURE);
+                // Remove the process from tracking
+                processes[i].process_id = -1;
+                processes[i].last_heartbeat = 0;
             }
         }
     }
@@ -87,7 +88,7 @@ int main(int argc, char *argv[]) {
     init_processes();
 
     char *pipe_name = argv[1];
-    int pipe_fd = open(pipe_name, O_RDONLY);
+    int pipe_fd = open(pipe_name, O_RDONLY | O_NONBLOCK);
     if (pipe_fd == -1) {
         perror("Failed to open pipe");
         return EXIT_FAILURE;
@@ -109,7 +110,13 @@ int main(int argc, char *argv[]) {
 
         if (activity < 0) {
             perror("Select error");
-            exit(EXIT_FAILURE);
+            close(pipe_fd);
+            pipe_fd = open(pipe_name, O_RDONLY | O_NONBLOCK);
+            if (pipe_fd == -1) {
+                perror("Failed to reopen pipe");
+                return EXIT_FAILURE;
+            }
+            continue;
         }
 
         current_time = time(NULL);
@@ -124,8 +131,7 @@ int main(int argc, char *argv[]) {
                 if (sscanf(buffer, "HEARTBEAT,%[^,],%d", proc_name, &process_id) == 2) {
                     int idx = find_or_allocate_process_index(process_id);
                     if (idx == -1) {
-                        fprintf(stderr, 
-                          "Error: No more slots to track process %d.\n", process_id);
+                        fprintf(stderr, "Error: No more slots to track process %d.\n", process_id);
                     } else {
                         processes[idx].process_id = process_id;
                         processes[idx].last_heartbeat = current_time;
