@@ -2,14 +2,14 @@
 
 # Function to kill existing processes
 kill_existing_processes() {
-    pkill -f blackboard || true
-    pkill -f watchdog || true
-    pkill -f keyboard_manager || true
-    pkill -f drone_dynamics || true
-    pkill -f obstacles_generator || true
-    pkill -f targets_generator || true
-    pkill -f "./bin/window_manager map"
-    pkill -f "./bin/window_manager input"
+    sudo pkill -f blackboard || true
+    sudo pkill -f watchdog || true
+    sudo pkill -f keyboard_manager || true
+    sudo pkill -f drone_dynamics || true
+    sudo pkill -f obstacles_generator || true
+    sudo pkill -f targets_generator || true
+    sudo pkill -f "./bin/window_manager map"
+    sudo pkill -f "./bin/window_manager input"
 }
 
 # Kill any existing related processes
