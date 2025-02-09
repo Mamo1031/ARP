@@ -4,9 +4,13 @@
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define PIPE_DIR "pipes/"
 #define PIPE_NAME PIPE_DIR "pipe_to_blackboard"
+
+#define MAX_TARGETS 50
+#define MAX_OBSTACLES 50
 
 // Signal handler to clean up ncurses mode on Ctrl+C
 void cleanup(int signo) {
@@ -14,12 +18,14 @@ void cleanup(int signo) {
     exit(0);
 }
 
-
+// Function to display the map with multiple targets and obstacles
 void display_map(int pipe_fd) {
-    char buffer[256];
+    char buffer[1024];  // Increased buffer size to handle multiple entries
     int drone_x = 0, drone_y = 0;
-    int target_x = 0, target_y = 0;
-    int obstacle_x = 0, obstacle_y = 0;
+    int targets[MAX_TARGETS][2];
+    int num_targets = 0;
+    int obstacles[MAX_OBSTACLES][2];
+    int num_obstacles = 0;
 
     const int MAP_W = 60;
     const int MAP_H = 30;
@@ -33,33 +39,73 @@ void display_map(int pipe_fd) {
         }
         buffer[bytes_read] = '\0';
 
-        sscanf(buffer, "Drone: (%d, %d), Target: (%d, %d), Obstacle: (%d, %d)",
-               &drone_x, &drone_y, &target_x, &target_y, &obstacle_x, &obstacle_y);
+        // Reset target and obstacle counts
+        num_targets = 0;
+        num_obstacles = 0;
+
+        // Parse the received data (assuming the format: "Drone: (x, y), Targets: [(x1, y1), (x2, y2), ...], Obstacles: [(x1, y1), (x2, y2), ...]")
+        char targets_str[512] = "", obstacles_str[512] = "";
+        sscanf(buffer, "Drone: (%d, %d), Targets: [%511[^]]], Obstacles: [%511[^]]]",
+               &drone_x, &drone_y, targets_str, obstacles_str);
+
+        // Parse the targets list
+        char *token = strtok(targets_str, "(),");
+        while (token != NULL && num_targets < MAX_TARGETS) {
+            targets[num_targets][0] = atoi(token);
+            token = strtok(NULL, "(),");
+            if (token == NULL) break;
+            targets[num_targets][1] = atoi(token);
+            token = strtok(NULL, "(),");
+            num_targets++;
+        }
+
+        // Parse the obstacles list
+        token = strtok(obstacles_str, "(),");
+        while (token != NULL && num_obstacles < MAX_OBSTACLES) {
+            obstacles[num_obstacles][0] = atoi(token);
+            token = strtok(NULL, "(),");
+            if (token == NULL) break;
+            obstacles[num_obstacles][1] = atoi(token);
+            token = strtok(NULL, "(),");
+            num_obstacles++;
+        }
 
         // ASCII map creation
         char map[MAP_H][MAP_W];
-        for(int r=0; r<MAP_H; r++){
-            for(int c=0; c<MAP_W; c++){
+        for (int r = 0; r < MAP_H; r++) {
+            for (int c = 0; c < MAP_W; c++) {
                 map[r][c] = ' ';
             }
         }
 
-        // Check coordinates and draw
+        // Place drone on the map
         if (drone_x >= 0 && drone_x < MAP_W && drone_y >= 0 && drone_y < MAP_H) {
             map[drone_y][drone_x] = '+';
         }
-        if (target_x >= 0 && target_x < MAP_W && target_y >= 0 && target_y < MAP_H) {
-            map[target_y][target_x] = 'T';
+
+        // Place targets on the map
+        for (int i = 0; i < num_targets; i++) {
+            int tx = targets[i][0];
+            int ty = targets[i][1];
+            if (tx >= 0 && tx < MAP_W && ty >= 0 && ty < MAP_H) {
+                map[ty][tx] = 'T';
+            }
         }
-        if (obstacle_x >= 0 && obstacle_x < MAP_W && obstacle_y >= 0 && obstacle_y < MAP_H) {
-            map[obstacle_y][obstacle_x] = 'O';
+
+        // Place obstacles on the map
+        for (int i = 0; i < num_obstacles; i++) {
+            int ox = obstacles[i][0];
+            int oy = obstacles[i][1];
+            if (ox >= 0 && ox < MAP_W && oy >= 0 && oy < MAP_H) {
+                map[oy][ox] = 'O';
+            }
         }
 
         clear();
         mvprintw(0, 0, "MAP DISPLAY");
         // Draw the contents of map[][] to the terminal
-        for(int r=0; r<MAP_H; r++){
-            mvprintw(r+1, 0, "%.*s", MAP_W, map[r]);
+        for (int r = 0; r < MAP_H; r++) {
+            mvprintw(r + 1, 0, "%.*s", MAP_W, map[r]);
         }
 
         refresh();
@@ -67,8 +113,7 @@ void display_map(int pipe_fd) {
     }
 }
 
-
-
+// Function to display input dynamics
 void display_input_dynamics(int pipe_fd) {
     char buffer[256];
 
@@ -90,7 +135,6 @@ void display_input_dynamics(int pipe_fd) {
         buffer[bytes_read] = '\0';
 
         mvprintw(0, 0, "INPUT DISPLAY");
-        mvprintw(1, 0, "Dynamics Data: %s", buffer);
         
         for (int i=2;i<14;i++)
 		{
