@@ -6,6 +6,7 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <signal.h>
 
 #define DEFAULT_MAX_CLIENTS 5
 #define DEFAULT_BUFFER_SIZE 1024
@@ -18,6 +19,7 @@
 #define OBSTACLES_PIPE_NAME PIPE_DIR "pipe_to_obstacles"
 #define TARGETS_PIPE_NAME PIPE_DIR "pipe_to_targets"
 
+// Blackboard structure holds drone, target, and obstacle data.
 typedef struct {
     int drone_x;
     int drone_y;
@@ -27,7 +29,7 @@ typedef struct {
     int obstacle_y;
 } Blackboard;
 
-// Function to read parameters from a file
+// Function to read parameters from a file.
 void read_parameters(const char *filename, int *max_clients, int *buffer_size, double *drone_mass, double *viscous_coeff) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -58,7 +60,7 @@ void read_parameters(const char *filename, int *max_clients, int *buffer_size, d
     fclose(file);
 }
 
-
+// handle_client processes incoming messages and updates the Blackboard accordingly.
 void handle_client(int fd, char *buffer, Blackboard *bb) {
     ssize_t bytes_read = read(fd, buffer, 1023);
     if (bytes_read <= 0) return; // error or EOF
@@ -80,7 +82,7 @@ void handle_client(int fd, char *buffer, Blackboard *bb) {
     }
 }
 
-
+// write_to_pipe sends the current state of the Blackboard via the BLACKBOARD_PIPE_NAME.
 void write_to_pipe(int pipe_fd, Blackboard *bb) {
     char buffer[1024];
     snprintf(buffer, sizeof(buffer),
@@ -90,7 +92,6 @@ void write_to_pipe(int pipe_fd, Blackboard *bb) {
              bb->obstacle_x, bb->obstacle_y
     );
 
-    // write(pipe_fd, buffer, strlen(buffer) + 1);
     ssize_t bytes_written = write(pipe_fd, buffer, strlen(buffer) + 1);
     if (bytes_written == -1) {
         perror("Failed to write to pipe");
@@ -102,6 +103,8 @@ void write_to_pipe(int pipe_fd, Blackboard *bb) {
 
 
 int main(int argc, char *argv[]) {
+    signal(SIGPIPE, SIG_IGN);
+
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <parameters_file>\n", argv[0]);
         exit(EXIT_FAILURE);
@@ -116,7 +119,7 @@ int main(int argc, char *argv[]) {
     double drone_mass, viscous_coeff;
     read_parameters(argv[1], &max_clients, &buffer_size, &drone_mass, &viscous_coeff);
 
-    // List of named pipes to read from
+    // List of named pipes to read from.
     const char *pipe_names[] = {
         KEYBOARD_PIPE_NAME,
         DRONE_PIPE_NAME,
@@ -125,21 +128,31 @@ int main(int argc, char *argv[]) {
     };
     int num_pipes = sizeof(pipe_names) / sizeof(pipe_names[0]);
 
-    // Open named pipes for reading
+    // Open named pipes for reading.
     int pipe_fds[num_pipes];
     for (int i = 0; i < num_pipes; i++) {
         pipe_fds[i] = open(pipe_names[i], O_RDONLY | O_NONBLOCK);
         if (pipe_fds[i] == -1) {
             perror("Failed to open one of the named pipes for reading");
-            // Proceeding without exiting might not be ideal, but depends on design
+            // Depending on design, you might choose to exit here.
         }
     }
 
-    // Open the named pipe for writing (to send updates)
+    // Open dummy writer for TARGETS_PIPE_NAME.
+    int dummy_targets_fd = open(TARGETS_PIPE_NAME, O_WRONLY | O_NONBLOCK);
+    if (dummy_targets_fd == -1) {
+        perror("Failed to open dummy writer for TARGETS_PIPE_NAME");
+    }
+    // Open dummy writer for OBSTACLES_PIPE_NAME.
+    int dummy_obstacles_fd = open(OBSTACLES_PIPE_NAME, O_WRONLY | O_NONBLOCK);
+    if (dummy_obstacles_fd == -1) {
+        perror("Failed to open dummy writer for OBSTACLES_PIPE_NAME");
+    }
+
+    // Open the blackboard pipe for writing (to send updates).
     int write_pipe_fd = open(BLACKBOARD_PIPE_NAME, O_WRONLY);
     if (write_pipe_fd == -1) {
         perror("Failed to open pipe_to_blackboard for writing");
-        // Exit if unable to open the pipe for writing
         exit(EXIT_FAILURE);
     }
 
@@ -151,7 +164,7 @@ int main(int argc, char *argv[]) {
         FD_ZERO(&read_fds_set);
         int max_fd = 0;
 
-        // Add all pipe_fds to the set
+        // Add all reading pipe file descriptors to the set.
         for (int i = 0; i < num_pipes; i++) {
             if (pipe_fds[i] != -1) {
                 FD_SET(pipe_fds[i], &read_fds_set);
@@ -161,7 +174,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Set timeout (optional, here it's NULL meaning wait indefinitely)
+        // Wait indefinitely for data to be available.
         int activity = select(max_fd + 1, &read_fds_set, NULL, NULL, NULL);
         if (activity < 0) {
             perror("Select error");
@@ -176,30 +189,33 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        // Write the current blackboard state to the named pipe
+        // Write the current blackboard state to the named pipe.
         write_to_pipe(write_pipe_fd, &bb);
 
-        // Notify Watchdog
+        // Notify Watchdog.
         if (wd_fd != -1) {
             char msg[64];
             snprintf(msg, sizeof(msg), "HEARTBEAT,blackboard,%d", getpid());
-
-            ssize_t ret = write(wd_fd, msg, strlen(msg)+1);
-            if(ret < 0) {
-                perror("Failed to write");
-            } else if(ret < strlen(msg)+1) {
-                fprintf(stderr, "Partial write: %ld/%ld bytes\n", (long)ret, (long)strlen(msg)+1);
+            ssize_t ret = write(wd_fd, msg, strlen(msg) + 1);
+            if (ret < 0) {
+                perror("Failed to write to watchdog pipe");
+            } else if (ret < (ssize_t)(strlen(msg) + 1)) {
+                fprintf(stderr, "Partial write: %ld/%lu bytes\n", (long)ret, (long)strlen(msg) + 1);
             }
         }
     }
 
-    // Close all pipe file descriptors
+    // Close all file descriptors.
     for (int i = 0; i < num_pipes; i++) {
         if (pipe_fds[i] != -1) {
             close(pipe_fds[i]);
         }
     }
     close(write_pipe_fd);
+    // Optionally close dummy writer fds.
+    if (dummy_targets_fd != -1) close(dummy_targets_fd);
+    if (dummy_obstacles_fd != -1) close(dummy_obstacles_fd);
+    if (wd_fd != -1) close(wd_fd);
 
     return 0;
 }
