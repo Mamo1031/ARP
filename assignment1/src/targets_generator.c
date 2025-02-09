@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
 
         printf("Target generated at (%d, %d)\n", target_x, target_y);
 
-        usleep(3 * 1e6); // Generate a new target every 1 seconds
+        usleep(3 * 1e6);
     }
 
     close(pipe_fd);
