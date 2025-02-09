@@ -28,7 +28,8 @@ void display_map(int pipe_fd) {
         // Receive the latest data from Blackboard
         ssize_t bytes_read = read(pipe_fd, buffer, sizeof(buffer) - 1);
         if (bytes_read <= 0) {
-            break;
+            usleep(50000);
+            continue;
         }
         buffer[bytes_read] = '\0';
 
@@ -81,17 +82,17 @@ void display_input_dynamics(int pipe_fd) {
             perror("Error reading from pipe");
             continue;
         } else if (bytes_read == 0) {
-            printw("Pipe closed. Exiting...\n");
+            printw("Pipe closed. Waiting for data...\n");
             refresh();
-            sleep(2);
-            break;
+            usleep(50000);
+            continue;
         }
         buffer[bytes_read] = '\0';
 
         mvprintw(0, 0, "INPUT DISPLAY");
         mvprintw(1, 0, "Dynamics Data: %s", buffer);
         
-        for (int i=2;i<14;i++) ///////////////////////////////////////////// Bertille
+        for (int i=2;i<14;i++)
 		{
 			mvprintw(2, i, "_");
 			mvprintw(5, i, "_");
@@ -131,7 +132,7 @@ void display_input_dynamics(int pipe_fd) {
 		mvprintw(7, 3, "<");
 		mvprintw(7, 8, "@"); 
 		
-	for (int i=2;i<14;i++) ///////////////////////////////////////////// Bertille
+	for (int i=2;i<14;i++)
 		{
 			mvprintw(13, i, "_");
 			mvprintw(16, i, "_");
