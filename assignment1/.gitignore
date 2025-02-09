@@ -1,7 +1,9 @@
 # Compiled binaries
 bin/
 *.out
-*.o
+
+# Object files directory
+obj/
 
 # Logs
 logs/
