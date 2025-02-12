@@ -114,7 +114,17 @@ assignment/
       - Update the drone position;
       - Signal handling.
 
-- **map_window.c**:
+- **map_window.c**: visualizes the simulation environment with targets, obstacles and the drone in the terminal using ncurses, while handling dynamic window resizing and real-time updates of the positions. It retrieves the drone's position and current score from shared memory and handles synchronization and shutdown with semaphores.
+   - PRIMITIVES:
+      - "game" structure (map dimensions, shared memory pointer for drone state and score, number of obstacles and targets);
+      - Display functions;
+      - IPC communication;
+      - Signal handling.
+   - ALGORITHMS:
+      - Initialzation of log files, ncurses, shared memory and semaphores;
+      - Update the data of drone, obstacles and targets;
+      - Resizing of display windows and cleanup.
+
 - **obstacle.c**:
 - **target.c**:
 
