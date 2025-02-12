@@ -49,6 +49,25 @@ assignment/
 [Architecture Sketch PDF](images/assignment1.pdf)
 
 - **main.c**:
+   - The main component of the program handles process management, inter-process communication, and overall system initialization.
+   - Allows Inter-Process Communication. Creates multiple pipes for communication between processes that are the "server", "drone", "obstacles", and "targets". This allows the components to exchange information during execution.
+   - Uses the fork() system call to create these processes and execvp() to execute their respective binaries. Those processes are the server, the drone, the obstacles, the targets and the keyboard manager.
+   - A separate process that monitors the state of the child processes is created to ensure that the system is operating correctly and handles failures if any child process stops unexpectedly.
+   - The component uses semaphores to synchronize process execution, ensuring that each process starts in the correct order.
+   - Logs errors to debug.log and errors.log and exits gracefully if any errors occur during file or pipe creation, process launching, or execution.
+
+   - PRIMITIVE: 
+      - fork() is used to create new processes;
+      - IPC is hanfled using pipes;
+      - Semaphores are used to synchronize the process with sem_open(), sem_wait(), and sem_close();
+      - fopen(), fclose(), and fread() are used to handle file input/output operations for configuration and logs;
+      - wait() is used to wait for child processes to terminate;
+   - ALGORITHMS:
+      - JSON Parsing: to extract values from a configuration file for simulation parameters (e.g., obstacles, targets, initial drone positions).
+
+
+
+
 - **server.c**:
 - **watchdog.c**:
 - **drone.c**:
