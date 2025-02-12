@@ -46,7 +46,7 @@ assignment/
 
 
 ## Architecture Sketch
-<!-- ![Architecture Sketch](images/assignment1.pdf) -->
+![Architecture Sketch](images/assignment1.pdf)
 
 - **main.c**:
 - **server.c**:
