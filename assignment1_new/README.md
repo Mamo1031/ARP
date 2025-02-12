@@ -100,9 +100,9 @@ Run :
 <  F  >          with the following keys       D  F  G
 /  v  \                                         C  V  B
 ```
-- Press the keys around the letter `F` to increase the force of command of the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type QWERTY, AZERTY and QWERTZ._
+- Press the keys around the letter `F` to increase the force of command of the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type QWERTY, AZERTY and QWERTZ._ The drone will be represented by an orange cross (`+`).
 - Press `F` to remove command forces.
 - Press `Q` to close.
 
-- Obstacles `"O"` and geofences on the borders will repulse the drone.
-- Targets `"T"` will attract the drone.
+- Obstacles (red `"O"`) and geofences on the borders will repulse the drone.
+- Targets (green `"T"`) will attract the drone.
