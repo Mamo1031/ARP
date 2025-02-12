@@ -65,17 +65,23 @@ assignment/
       - JSON Parsing: to extract values from a configuration file for simulation parameters (e.g., obstacles, targets, initial drone positions).
 
 
-- **server.c**:
-   - server function - Main server loop that relays data between processes. This function monitors several file descriptors (using select) for incoming data from the map, input, obstacle, and target processes. When data is available, it forwards the information to the appropriate destination file descriptors.
-   - get_konsole_child - Retrieves the PID of a child process running under a terminal. This function executes a "ps" command to list the child processes of the given terminal PID.
-   - signal_handler - Handles signals received by the server process. For SIGUSR1, it updates the watchdog PID and forwards the signal back. For SIGUSR2, it performs a shutdown sequence including killing the map process, unlinking shared memory and semaphores, closing log files, and exiting.
-   - create_drone_shared_memory - Creates and maps the shared memory for the drone. This function creates the shared memory segment for the Drone structure, sets its size, and maps it into the process's address space.
-   - create_score_shared_memory - Creates and maps the shared memory for the score. This function creates the shared memory segment for the score (a float), sets its size, initializes it to 0, and maps it into the process's address space.
-   - send_signal_generation_thread - Thread routine for periodically sending signals. This thread waits for 15 seconds, then sends a SIGTERM signal to the target and obstacle processes (if their PIDs are valid). It repeats this cycle indefinitely.
-   - get_pid_by_command - Retrieves the PID of a process based on its command name. This function uses "ps aux" piped to grep to find a process by name, then parses the output to extract its PID.
-   - main - Entry point for the server process. The server process is responsible for relaying data between various processes (drone, input, map, obstacle, and target processes) via pipes. It also creates and manages shared memory segments, semaphores, and spawns a thread to periodically send SIGTERM signals to the obstacle and target processes.
+- **server.c**: central relay for inter-process communication, managing data flow between the drone, map, input, obstacle, and target processes. It also handles shared memory, process monitoring, and periodic signaling to ensure synchronization and control.
+    - PRIMITIVES:
+      - Shared memory for storing drone state and score (shm_open, mmap);
+      - Named pipes for inter-process communication (select() for non-blocking I/O);
+      - Signals for process control and watchdog communication (SIGUSR1, SIGUSR2, SIGTERM);
+      - Semaphores for process synchronization (sem_open, sem_post);
+      - Multithreading for periodic signal generation (pthread_create);
+      - System commands for process management (ps aux, grep, popen);
+      - File handling for logging and debugging (fopen(), fprintf()).
+   - ALGORITHMS:
+      - Main server loop using select() to efficiently monitor multiple pipes for incoming data and forward it to the correct process;
+      - Finding and tracking child process IDs using system commands;
+      - Handle watchdog requests, shutdown sequences, and controlled termination of processes with signals;
+      - Shared memory management to create and map memory segments for drone state and score tracking;
+      - Thread-based signal generation that periodically sends SIGTERM to target and obstacle processes to trigger regeneration.
 
-- **watchdog.c**: This program implements a watchdog process that monitors multiple child processes, ensuring they are responsive within a specified timeout period with SIGUSR1. If any monitored process fails to respond, the watchdog takes action by logging the issue in debug.log and errors.log and terminating all processes with SIGUSR2 or SIGTERM.
+- **watchdog.c**: implements a watchdog process that monitors multiple child processes, ensuring they are responsive within a specified timeout period with SIGUSR1. If any monitored process fails to respond, the watchdog takes action by logging the issue in debug.log and errors.log and terminating all processes with SIGUSR2 or SIGTERM.
    - PRIMITIVES: 
       - For signals: SIGUSR1, SIGUSR2, SIGTERM;
       - For signal handling: sigaction(), sigemptyset(), sigpromask();
@@ -102,7 +108,8 @@ assignment/
       - Update of the drone position in a separate thread;
       - Handling asynchronous events with signal handlers;
       - Managing dynamic memory for obstacles and targets.
-- **keyboard_manager.c**: The Keyboard Manager captures user input, updates UI elements, and communicates with other processes via shared memory, pipes, and signals. 
+
+- **keyboard_manager.c**: captures user input, updates UI elements, and communicates with other processes via shared memory, pipes, and signals. 
    - PRIMITIVES:
       - ncurses for UI;
       - pthread for multithreading;
@@ -114,7 +121,7 @@ assignment/
       - Update the drone position;
       - Signal handling.
 
-- **map_window.c**: visualizes the simulation environment with targets, obstacles and the drone in the terminal using ncurses, while handling dynamic window resizing and real-time updates of the positions. It retrieves the drone's position and current score from shared memory and handles synchronization and shutdown with semaphores.
+- **map_window.c**: displays the simulation environment with targets, obstacles and the drone in the terminal using ncurses, while handling dynamic window resizing and real-time updates of the positions. It retrieves the drone's position and current score from shared memory and handles synchronization and shutdown with semaphores.
    - PRIMITIVES:
       - "game" structure (map dimensions, shared memory pointer for drone state and score, number of obstacles and targets);
       - Display functions;
@@ -125,8 +132,35 @@ assignment/
       - Update the data of drone, obstacles and targets;
       - Resizing of display windows and cleanup.
 
-- **obstacle.c**:
-- **target.c**:
+- **obstacle.c**: generates and manages obstacles in the drone's environment. It receives information about the map size and dynamically adjusts obstacle positions. It communicates with other processes via pipes and signals, to respond to updates of the environment.
+   - PRIMITIVES:
+      - Shared memory to synchronize game state (shm_open, mmap);
+      - Named pipes to receive map size and send obstacle positions (select());
+      - Signals to handle process interruptions and state changes (sigaction for SIGUSR1, SIGUSR2, SIGTERM);
+      - Semaphores for child process synchronization (sem_open, sem_post);
+      - Dynamic memory allocation for obstacle management (malloc(), free());
+      - File handling for logging errors and events (fopen(), fprintf()).
+   - ALGORITHMS:
+      - Main loop with select() to listen for map updates;
+      - Random obstacle generation based on map size constraints;
+      - Signal-driven behavior to respond to system events;
+      - Inter-process communication via pipes to update obstacle positions dynamically;
+      - Watchdog communication to ensure process monitoring and controlled shutdown.
+
+- **target.c**: generates and manages targets in the drone's environment. It dynamically places targets on the map, listens for updates, and handles communication with other processes.
+   - PRIMITIVES:
+      - Shared memory for game state synchronization (shm_open, mmap);
+      - Named pipes to receive map size and send target positions (select());
+      - Signals for handling process interruptions and state changes (sigaction for SIGUSR1, SIGUSR2, SIGTERM);
+      - Semaphores for process synchronization (sem_open, sem_post);
+      - Dynamic memory allocation for storing target data (malloc(), free());
+      - File handling for debugging and logging errors (fopen(), fprintf()).
+   - ALGORITHMS:
+      - Main loop with select() to monitor map size updates;
+      - Random target placement within defined map constraints;
+      - Regenerate targets and communicate with the watchdog with signals;
+      - Inter-process communication via pipes to update target positions dynamically;
+      - Watchdog monitoring to ensure controlled shutdown.
 
 
 ## Prerequisites
