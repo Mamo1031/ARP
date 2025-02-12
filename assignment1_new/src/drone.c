@@ -127,6 +127,7 @@ void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
         if (distance <= HIT_THR && (!objects[i].hit || objects[i].type == 'o')) {
             if (objects[i].type == 'o') {
                 // For obstacles, apply a repulsive force.
+                *score -= 1.0f;
                 forces[0] += calculate_repulsive_force_x(*drone, objects[i].pos_x, objects[i].pos_y);
                 forces[1] += calculate_repulsive_force_y(*drone, objects[i].pos_x, objects[i].pos_y);
             } else {
