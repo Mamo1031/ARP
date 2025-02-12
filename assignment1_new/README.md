@@ -56,9 +56,9 @@ assignment/
    - The component uses semaphores to synchronize process execution, ensuring that each process starts in the correct order.
    - Logs errors to debug.log and errors.log and exits gracefully if any errors occur during file or pipe creation, process launching, or execution.
 
-   - PRIMITIVE: 
+   - PRIMITIVES: 
       - fork() is used to create new processes;
-      - IPC is hanfled using pipes;
+      - IPC is handled using pipes;
       - Semaphores are used to synchronize the process with sem_open(), sem_wait(), and sem_close();
       - fopen(), fclose(), and fread() are used to handle file input/output operations for configuration and logs;
       - wait() is used to wait for child processes to terminate;
@@ -66,10 +66,29 @@ assignment/
       - JSON Parsing: to extract values from a configuration file for simulation parameters (e.g., obstacles, targets, initial drone positions).
 
 
-
-
 - **server.c**:
-- **watchdog.c**:
+   - server function - Main server loop that relays data between processes. This function monitors several file descriptors (using select) for incoming data from the map, input, obstacle, and target processes. When data is available, it forwards the information to the appropriate destination file descriptors.
+   - get_konsole_child - Retrieves the PID of a child process running under a terminal. This function executes a "ps" command to list the child processes of the given terminal PID.
+   - signal_handler - Handles signals received by the server process. For SIGUSR1, it updates the watchdog PID and forwards the signal back. For SIGUSR2, it performs a shutdown sequence including killing the map process, unlinking shared memory and semaphores, closing log files, and exiting.
+   - create_drone_shared_memory - Creates and maps the shared memory for the drone. This function creates the shared memory segment for the Drone structure, sets its size, and maps it into the process's address space.
+   - create_score_shared_memory - Creates and maps the shared memory for the score. This function creates the shared memory segment for the score (a float), sets its size, initializes it to 0, and maps it into the process's address space.
+   - send_signal_generation_thread - Thread routine for periodically sending signals. This thread waits for 15 seconds, then sends a SIGTERM signal to the target and obstacle processes (if their PIDs are valid). It repeats this cycle indefinitely.
+   - get_pid_by_command - Retrieves the PID of a process based on its command name. This function uses "ps aux" piped to grep to find a process by name, then parses the output to extract its PID.
+   - main - Entry point for the server process. The server process is responsible for relaying data between various processes (drone, input, map, obstacle, and target processes) via pipes. It also creates and manages shared memory segments, semaphores, and spawns a thread to periodically send SIGTERM signals to the obstacle and target processes.
+
+- **watchdog.c**: This program implements a watchdog process that monitors multiple child processes, ensuring they are responsive within a specified timeout period with SIGUSR1. If any monitored process fails to respond, the watchdog takes action by logging the issue in debug.log and errors.log and terminating all processes with SIGUSR2 or SIGTERM.
+   - PRIMITIVES: 
+      - For signals: SIGUSR1, SIGUSR2, SIGTERM;
+      - For signal handling: sigaction(), sigemptyset(), sigpromask();
+      - For process management: kill(), getpid();
+      - For semaphores: sem_t, sem_open(), sem_post(), sem_close();
+      - For file operations: fopen(), fgets(), fclose();
+      For time management: time(), difftime(), strftime();
+   - ALGORITHMS:
+      - Timeout Handling algorithm
+      - Signal Handling Algorithm
+      - Watchdog Loop
+
 - **drone.c**:
 - **keyboard_manager.c**:
 - **map_window.c**:
@@ -119,7 +138,7 @@ Run :
 <  F  >          with the following keys       D  F  G
 /  v  \                                         C  V  B
 ```
-- Press the keys around the letter `F` to increase the force of command of the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type QWERTY, AZERTY and QWERTZ._ The drone will be represented by an orange cross (`+`).
+- Press the keys around the letter `F` to increase the force of command of the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type QWERTY, AZERTY and QWERTZ._ The drone will be represented by an orange cross (`"+"`).
 - Press `F` to remove command forces.
 - Press `Q` to close.
 
