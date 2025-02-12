@@ -214,40 +214,40 @@ void *update_drone_position_thread(void *arg) {
 // Note: Some cases subtract or add zero; these are kept for clarity.
 void handle_key_pressed(char key, Drone *drone) {
     switch (key) {
-        case 'w': case 'W':
-            drone->force_x -= FORCE_MODULE;
-            drone->force_y -= FORCE_MODULE / 2;
-            break;
         case 'e': case 'E':
-            // No change to force_x; decrease force_y.
+            drone->force_x -= FORCE_MODULE;
             drone->force_y -= FORCE_MODULE / 2;
             break;
         case 'r': case 'R':
+            // No change to force_x; decrease force_y.
+            drone->force_y -= FORCE_MODULE / 2;
+            break;
+        case 't': case 'T':
             drone->force_x += FORCE_MODULE;
             drone->force_y -= FORCE_MODULE / 2;
             break;
-        case 's': case 'S':
+        case 'd': case 'D':
             drone->force_x -= FORCE_MODULE;
             // No change to force_y.
             break;
-        case 'd': case 'D':
+        case 'f': case 'F':
             // Reset forces.
             drone->force_x = 0;
             drone->force_y = 0;
             break;
-        case 'f': case 'F':
+        case 'g': case 'G':
             drone->force_x += FORCE_MODULE;
             // No change to force_y.
             break;
-        case 'x': case 'X':
+        case 'c': case 'C':
             drone->force_x -= FORCE_MODULE;
             drone->force_y += FORCE_MODULE / 2;
             break;
-        case 'c': case 'C':
+        case 'v': case 'V':
             // No change to force_x; increase force_y.
             drone->force_y += FORCE_MODULE / 2;
             break;
-        case 'v': case 'V':
+        case 'b': case 'B':
             drone->force_x += FORCE_MODULE;
             drone->force_y += FORCE_MODULE / 2;
             break;

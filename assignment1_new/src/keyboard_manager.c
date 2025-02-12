@@ -26,7 +26,7 @@ pid_t wd_pid;
 // Symbols displayed on the keyboard grid.
 const char *symbols[3][3] = {
     {"\\", "^", "/"},
-    {"<", "D", ">"},
+    {"<", "F", ">"},
     {"/", "v", "\\"}
 };
 

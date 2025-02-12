@@ -14,6 +14,7 @@
 #include <errno.h>
 #include "cJSON.h"
 #include "utils.h"
+#include <semaphore.h>
 
 // Global log file pointers
 FILE *debug, *errors;

@@ -13,6 +13,7 @@
 #include <sys/select.h>
 #include <errno.h>
 #include "utils.h"
+#include <semaphore.h>
 
 // Global log file pointers for debugging and error messages.
 FILE *debug, *errors;
