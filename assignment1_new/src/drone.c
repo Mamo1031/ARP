@@ -141,12 +141,37 @@ void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
     }
 }
 
+void check_geofences(Drone *drone, float *forces) {
+    forces[0] = 0.0f; // Force in X direction
+    forces[1] = 0.0f; // Force in Y direction
+
+    // Check if the drone is within the hit threshold of the geofences
+    float distance_up = fabs(drone->pos_y);
+    float distance_down = fabs(drone->pos_y - game.max_y);
+    float distance_left = fabs(drone->pos_x);
+    float distance_right = fabs(drone->pos_x - game.max_x);
+
+    if (distance_up <= HIT_THR){
+        forces[1] += calculate_repulsive_force_x(*drone, drone->pos_x, 0);
+    }
+    if (distance_down <= HIT_THR){
+        forces[1] += calculate_repulsive_force_x(*drone, drone->pos_x, game.max_y);
+    }
+    if (distance_left <= HIT_THR){
+        forces[0] += calculate_repulsive_force_x(*drone, 0, drone->pos_y);
+    }
+    if (distance_right <= HIT_THR){
+        forces[0] += calculate_repulsive_force_x(*drone, game.max_x, drone->pos_y);
+    }
+}
+
 //---------------------------------------------------------------------
 // Update the drone's position based on forces, friction, and collisions.
 // dt: time step for the update.
 void update_drone_position(Drone *drone, float dt) {
     float forceObsX = 0.0f, forceObsY = 0.0f;
     float forceTargetsX = 0.0f, forceTargetsY = 0.0f;
+    float forceGeofenceX = 0.0f, forceGeofenceY = 0.0f;
     float forces[2];
 
     // Calculate friction forces for both directions.
@@ -163,9 +188,14 @@ void update_drone_position(Drone *drone, float dt) {
     forceTargetsX = forces[0];
     forceTargetsY = forces[1];
 
+    // Check collisions with geofence.
+    check_geofences(drone, forces);
+    forceGeofenceX = forces[0];
+    forceGeofenceY = forces[1];
+
     // Compute acceleration using Newton's second law: a = (F_total) / mass.
-    float accelerationX = (drone->force_x + frictionForceX + forceObsX + forceTargetsX) / MASS;
-    float accelerationY = (drone->force_y + frictionForceY + forceObsY + forceTargetsY) / MASS;
+    float accelerationX = (drone->force_x + frictionForceX + forceObsX + forceTargetsX + forceGeofenceX) / MASS;
+    float accelerationY = (drone->force_y + frictionForceY + forceObsY + forceTargetsY + forceGeofenceY) / MASS;
 
     // Update velocity using acceleration.
     drone->vel_x += accelerationX * dt;
