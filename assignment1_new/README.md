@@ -91,3 +91,13 @@ Run :
 ```bash
 ./bin/main
 ```
+
+## Operational instructions
+- After running, press `s` to start the simulation or `q` to quit.
+- When starting the simulation, be sure to click on the window of `Input Display`, then command the drone with your keyboard.
+```
+\ ^ / < F > / v \
+```
+- Press the keys around the letter `F` to move the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type   QWERTY, AZERTY and QWERTZ._
+- Press `F` to remove command forces.
+- Press `Q` to close.
