@@ -102,7 +102,18 @@ assignment/
       - Update of the drone position in a separate thread;
       - Handling asynchronous events with signal handlers;
       - Managing dynamic memory for obstacles and targets.
-- **keyboard_manager.c**:
+- **keyboard_manager.c**: The Keyboard Manager captures user input, updates UI elements, and communicates with other processes via shared memory, pipes, and signals. 
+   - PRIMITIVES:
+      - ncurses for UI;
+      - pthread for multithreading;
+      - shm for IPC;
+      - signals for control.
+   - ALGORITHMS:
+      - Reading keyboard input;
+      - Creating and filling UI windows for visual feedback;
+      - Update the drone position;
+      - Signal handling.
+
 - **map_window.c**:
 - **obstacle.c**:
 - **target.c**:
