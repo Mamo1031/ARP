@@ -213,18 +213,20 @@ void *update_drone_position_thread(void *arg) {
 // The keys correspond to different movement directions.
 // Note: Some cases subtract or add zero; these are kept for clarity.
 void handle_key_pressed(char key, Drone *drone) {
+    // Normalize the force when the displacement is diagonal, so that the norm of the input force is always equal to FORCE_MODULE.
+    double NORM_DIAGONAL = sqrt(5)/2;
     switch (key) {
         case 'e': case 'E':
-            drone->force_x -= FORCE_MODULE;
-            drone->force_y -= FORCE_MODULE / 2;
+            drone->force_x -= FORCE_MODULE / NORM_DIAGONAL;
+            drone->force_y -= FORCE_MODULE / (2*NORM_DIAGONAL);
             break;
         case 'r': case 'R':
             // No change to force_x; decrease force_y.
             drone->force_y -= FORCE_MODULE / 2;
             break;
         case 't': case 'T':
-            drone->force_x += FORCE_MODULE;
-            drone->force_y -= FORCE_MODULE / 2;
+            drone->force_x += FORCE_MODULE / NORM_DIAGONAL;
+            drone->force_y -= FORCE_MODULE / (2*NORM_DIAGONAL);
             break;
         case 'd': case 'D':
             drone->force_x -= FORCE_MODULE;
@@ -240,16 +242,16 @@ void handle_key_pressed(char key, Drone *drone) {
             // No change to force_y.
             break;
         case 'c': case 'C':
-            drone->force_x -= FORCE_MODULE;
-            drone->force_y += FORCE_MODULE / 2;
+            drone->force_x -= FORCE_MODULE / NORM_DIAGONAL;
+            drone->force_y += FORCE_MODULE / (2*NORM_DIAGONAL);
             break;
         case 'v': case 'V':
             // No change to force_x; increase force_y.
             drone->force_y += FORCE_MODULE / 2;
             break;
         case 'b': case 'B':
-            drone->force_x += FORCE_MODULE;
-            drone->force_y += FORCE_MODULE / 2;
+            drone->force_x += FORCE_MODULE / NORM_DIAGONAL;
+            drone->force_y += FORCE_MODULE / (2*NORM_DIAGONAL);
             break;
         default:
             break;
