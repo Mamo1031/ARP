@@ -48,8 +48,7 @@ assignment/
 ## Architecture Sketch
 [Architecture Sketch PDF](images/assignment1.pdf)
 
-- **main.c**:
-   - The main component of the program handles process management, inter-process communication, and overall system initialization.
+- **main.c**: handles process management, inter-process communication, and overall system initialization.
    - Allows Inter-Process Communication. Creates multiple pipes for communication between processes that are the "server", "drone", "obstacles", and "targets". This allows the components to exchange information during execution.
    - Uses the fork() system call to create these processes and execvp() to execute their respective binaries. Those processes are the server, the drone, the obstacles, the targets and the keyboard manager.
    - A separate process that monitors the state of the child processes is created to ensure that the system is operating correctly and handles failures if any child process stops unexpectedly.
@@ -89,7 +88,20 @@ assignment/
       - Signal Handling Algorithm
       - Watchdog Loop
 
-- **drone.c**:
+- **drone.c**: defines the functions and structures related to the drone's movement and physics interactions (forces like attraction, repulsion and friction). It operates in a loop, responding to changes in the environment, such as map size, obstacle positions, and target positions, while also processing keyboard inputs to control the drone. It handles object collisions (obstacles and targets), updating the drone’s position, and responding to key presses.
+   - PRIMITIVES:
+      - Shared memory for the droen state and the score (shm_open, mmap);
+      - Named pipes to receive map size, obstacles and targets from external processes (select());
+      - Signals to change the behaviour of the drone (sigaction);
+      - Threads to update the drone's position position (pthread_create() and update_drone_position_thread());
+      - Memory allocation for obstacles and targets (malloc() and free());
+      - Logging errors.
+   - ALGORITHMS:
+      - Main loop using select() for multiplexing;
+      - Parsing incoming data for obstacles and targets and updating the simulation state;
+      - Update of the drone position in a separate thread;
+      - Handling asynchronous events with signal handlers;
+      - Managing dynamic memory for obstacles and targets.
 - **keyboard_manager.c**:
 - **map_window.c**:
 - **obstacle.c**:
