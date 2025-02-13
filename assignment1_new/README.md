@@ -96,7 +96,7 @@ assignment/
 
 - **drone.c**: defines the functions and structures related to the drone's movement and physics interactions (forces like attraction, repulsion and friction). It operates in a loop, responding to changes in the environment, such as map size, obstacle positions, and target positions, while also processing keyboard inputs to control the drone. It handles object collisions (obstacles and targets), updating the drone’s position, and responding to key presses.
    - PRIMITIVES:
-      - Shared memory for the droen state and the score (shm_open, mmap);
+      - Shared memory for the drone state and the score (shm_open, mmap);
       - Named pipes to receive map size, obstacles and targets from external processes (select());
       - Signals to change the behaviour of the drone (sigaction);
       - Threads to update the drone's position position (pthread_create() and update_drone_position_thread());

@@ -115,7 +115,7 @@ float calculate_repulsive_force_y(Drone droneData, int xo, int yo) {
 void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
     forces[0] = 0.0f; // Force in X direction
     forces[1] = 0.0f; // Force in Y direction
-
+    float increment_score;
     for (int i = 0; i < objectCount; i++) {
         /* 
          * We add 0.5 to the object's position so that the distance is measured
@@ -132,7 +132,9 @@ void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
                 forces[1] += calculate_repulsive_force_y(*drone, objects[i].pos_x, objects[i].pos_y);
             } else {
                 // For targets, increase the score, mark the target as hit, and apply an attractive force.
-                *score += 1.0f;
+                increment_score = (float)objects[i].number;
+                *score += increment_score;
+                // *score += 1.0f;
                 objects[i].hit = true;
                 forces[0] += calculate_attractive_force_x(drone->pos_x, objects[i].pos_x);
                 forces[1] += calculate_attractive_force_y(drone->pos_y, objects[i].pos_y);  
@@ -434,8 +436,8 @@ void drone_process(int mapSizeFd, int inputKeyFd, int obstaclesPosFd, int target
                     int i = 0;
                     memset(targets, 0, numTargets * sizeof(Object));
                     while (token != NULL && i < numTargets) {
-                        sscanf(token, "%d,%d,%c,%d", 
-                               &targets[i].pos_x, &targets[i].pos_y, &targets[i].type, (int *)&targets[i].hit);
+                        sscanf(token, "%d,%d,%c,%d,%d", 
+                               &targets[i].pos_x, &targets[i].pos_y, &targets[i].type, (int *)&targets[i].hit, &targets[i].number);
                         token = strtok(NULL, "|");
                         i++;
                     }
