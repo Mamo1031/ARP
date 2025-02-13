@@ -13,3 +13,6 @@ logs/
 
 # List of PIDs
 pids.txt
+
+# Generated executable for restart function
+restart.sh

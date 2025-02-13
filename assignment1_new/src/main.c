@@ -5,8 +5,10 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 #include "cJSON.h"
 #include "utils.h"
+
 
 // Global file pointers for logging
 FILE *debug, *errors;
@@ -42,7 +44,56 @@ int get_terminal_child(pid_t terminal_pid) {
     return pid;
 }
 
+// Create the executable to restart the simulation, if it doesn't exist
+void create_restart_script() {
+    struct stat buffer;
+    if (stat("restart.sh", &buffer) != 0) { // Vérifie si le fichier existe
+        FILE *file = fopen("restart.sh", "w");
+        if (file == NULL) {
+            perror("Error creating restart.sh");
+            exit(EXIT_FAILURE);
+        }
+
+        // Écriture du script dans le fichier
+        fprintf(file, "#!/bin/bash\n\n");
+        fprintf(file, "# LOGFILE=\"logs/debug.log\" ## Uncomment echo for feedback\n\n");
+        fprintf(file, "# exec >> \"$LOGFILE\" 2>&1\n\n");
+
+        fprintf(file, "# Read the PID of the watchdog\n");
+        fprintf(file, "if [ ! -f pids.txt ]; then\n");
+        fprintf(file, "    echo \"Error: pids.txt not found!\"\n");
+        fprintf(file, "    exit 1\n");
+        fprintf(file, "fi\n\n");
+
+        fprintf(file, "WATCHDOG_PID=$(head -n 1 pids.txt)\n\n");
+        fprintf(file, "# Send SIGUSR2 to the watchdog to kill all the processes\n");
+        fprintf(file, "# echo \"[RESTART] Killing watchdog and all processes...\"\n");
+        fprintf(file, "kill -SIGUSR2 $WATCHDOG_PID\n\n");
+
+        fprintf(file, "# Wait for all processes to exit\n");
+        fprintf(file, "# echo \"[RESTART] Waiting for all processes to exit...\"\n");
+        fprintf(file, "while pgrep -x \"watchdog\" || pgrep -x \"server\" || pgrep -x \"drone\" || \\\n");
+        fprintf(file, "      pgrep -x \"obstacle\" || pgrep -x \"target\" || pgrep -x \"input\"; do\n");
+        fprintf(file, "    sleep 0.5\n");
+        fprintf(file, "done\n\n");
+
+        fprintf(file, "# echo \"[RESTART] All processes terminated.\"\n\n");
+
+        fprintf(file, "# Start over the main\n");
+        fprintf(file, "#echo \"[RESTART] Starting over...\"\n");
+        fprintf(file, "wmctrl -c \"Konsole\"\n");
+        fprintf(file, "konsole -e bash -c \"./bin/main; exec bash\"\n\n");
+        fprintf(file, "# Wait a bit to write PIDs\n");
+        fprintf(file, "sleep 2\n");
+
+        fclose(file);
+        chmod("restart.sh", 0755);
+        printf("restart.sh created successfully.\n");
+    }
+}
+
 int main() {
+    create_restart_script();
     /* OPEN THE LOG FILES in the "logs" directory */
     debug = fopen("logs/debug.log", "a");
     if (debug == NULL) {
