@@ -10,3 +10,6 @@ logs/
 
 # VS Code settings
 .vscode/
+
+# List of PIDs
+pids.txt
