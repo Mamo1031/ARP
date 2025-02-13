@@ -77,7 +77,7 @@ void render_targets(Object targets[]) {
         if (targets[i].pos_y <= 0 || targets[i].pos_x <= 0)
             continue;
         sprintf(nb, "%d", targets[i].number); // Change the index of the target as a string
-        mvprintw(targets[i].pos_y, targets[i].pos_x, nb);
+        mvprintw(targets[i].pos_y, targets[i].pos_x, "%s", nb);
     }
     attroff(COLOR_PAIR(2));
     refresh();
