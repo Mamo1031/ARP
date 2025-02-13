@@ -161,10 +161,10 @@ void check_geofences(Drone *drone, float *forces) {
     float distance_right = fabs(drone->pos_x - game.max_x);
 
     if (distance_up <= HIT_THR){
-        forces[1] += calculate_repulsive_force_x(*drone, drone->pos_x, 0);
+        forces[1] += calculate_repulsive_force_y(*drone, drone->pos_x, 0);
     }
     if (distance_down <= HIT_THR){
-        forces[1] += calculate_repulsive_force_x(*drone, drone->pos_x, game.max_y);
+        forces[1] += calculate_repulsive_force_y(*drone, drone->pos_x, game.max_y);
     }
     if (distance_left <= HIT_THR){
         forces[0] += calculate_repulsive_force_x(*drone, 0, drone->pos_y);
