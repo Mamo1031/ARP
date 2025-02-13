@@ -61,6 +61,12 @@ typedef struct {
     int max_x, max_y;         // Maximum dimensions of the game area
 } Game;
 
+// Structure of the score.
+typedef struct {
+    int last_target;         // index number of the last target reached by the drone
+    float score;             // value of the score
+} Score;
+
 //---------------------------------------------------------------------
 // Logging Functions and Macros
 //---------------------------------------------------------------------

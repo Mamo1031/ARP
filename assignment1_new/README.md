@@ -211,5 +211,9 @@ Run :
 - Press `Q` to quit.
 - Press `O` to start over the simulation.
 
-- Obstacles (red `"O"`) and geofences on the borders will repulse the drone. If the drone hits an obstacle, the score is decremented by 1.
-- Targets (green _`"number"`_) will attract the drone. If the drone hits a target, the score is incremented by the value of the target's number.
+- Obstacles (red `"O"`) and geofences on the borders will repulse the drone.
+- Targets (green _`"number"`_) will attract the drone.
+- Score: 
+   - Hit a random target and win 1 point;
+   - Hit the target such that _index_(target) = 1 + _index_(last target hit) and win _index_ points;
+   - Hit an obstacle and lose half as much points as the index of the last target you hit. You will lose your sequence. 

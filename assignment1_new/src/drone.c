@@ -27,7 +27,7 @@ float rho0 = 2.0f, rho1 = 0.5f, eta = 40.0f;
 
 Game game;           // Global game configuration
 Drone *drone;        // Pointer to the shared drone structure
-float *score;        // Pointer to the shared score
+Score *score;        // Pointer to the shared score
 int numObstacles, numTargets;  // Number of obstacles and targets
 
 Object *obstacles, *targets;   // Arrays holding obstacle and target objects
@@ -115,7 +115,7 @@ float calculate_repulsive_force_y(Drone droneData, int xo, int yo) {
 void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
     forces[0] = 0.0f; // Force in X direction
     forces[1] = 0.0f; // Force in Y direction
-    float increment_score;
+    float index_target;
     for (int i = 0; i < objectCount; i++) {
         /* 
          * We add 0.5 to the object's position so that the distance is measured
@@ -127,14 +127,20 @@ void check_hit(Drone *drone, Object *objects, int objectCount, float *forces) {
         if (distance <= HIT_THR && (!objects[i].hit || objects[i].type == 'o')) {
             if (objects[i].type == 'o') {
                 // For obstacles, apply a repulsive force.
-                *score -= 1.0f;
+                score->score -= score->last_target/2; // the score decreases by half of the index-number of the last target reached
+                score->last_target = 2; // after a collision with an obstacle, successive collisions cost 1 point of score only
                 forces[0] += calculate_repulsive_force_x(*drone, objects[i].pos_x, objects[i].pos_y);
                 forces[1] += calculate_repulsive_force_y(*drone, objects[i].pos_x, objects[i].pos_y);
             } else {
                 // For targets, increase the score, mark the target as hit, and apply an attractive force.
-                increment_score = (float)objects[i].number;
-                *score += increment_score;
-                // *score += 1.0f;
+                index_target = (float)objects[i].number;
+                
+                if (index_target == score->last_target + 1){
+                    score->score += index_target; // if the targets are reached in order, the targets index-numbers are added
+                } else {
+                    score->score = 1.0f; // if the index of the target reached does not follow the index of the previous target reached, score +=1
+                }
+                score->last_target = index_target;
                 objects[i].hit = true;
                 forces[0] += calculate_attractive_force_x(drone->pos_x, objects[i].pos_x);
                 forces[1] += calculate_attractive_force_y(drone->pos_y, objects[i].pos_y);  
@@ -347,7 +353,7 @@ int open_score_shared_memory() {
         fclose(errors);   
         exit(EXIT_FAILURE);
     }
-    score = (float *)mmap(0, sizeof(float), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    score = (Score *)mmap(0, sizeof(Score), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (score == MAP_FAILED) {
         perror("[DRONE]: Error mapping the score shared memory");
         LOG_TO_FILE(errors, "Error mapping the score shared memory");
@@ -596,7 +602,7 @@ int main(int argc, char* argv[]) {
 
     // Unmap the shared memory regions.
     munmap(drone, sizeof(Drone));
-    munmap(score, sizeof(float));
+    munmap(score, sizeof(Score));
 
     free(obstacles);
     free(targets);

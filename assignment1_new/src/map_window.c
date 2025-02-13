@@ -26,7 +26,7 @@ int n_obs;
 int n_targ;
 
 // Pointer to the shared score.
-float *score;
+Score *score;
 
 /**
  * draw_outer_box - Draws the outer border on the main screen.
@@ -37,7 +37,7 @@ float *score;
 void draw_outer_box() {
     attron(COLOR_PAIR(1));  // Use color pair 1 (blue on black)
     box(stdscr, 0, 0);      // Draw a border around stdscr
-    mvprintw(0, 1, "Map Display - Score: %.2f", *score);
+    mvprintw(0, 1, "Map Display - Score: %.2f", score->score);
     attroff(COLOR_PAIR(1));
     refresh();
 }
@@ -209,7 +209,7 @@ int open_score_shared_memory() {
         fclose(errors);
         exit(EXIT_FAILURE);
     }
-    score = (float *)mmap(0, sizeof(float), PROT_READ, MAP_SHARED, score_mem_fd, 0);
+    score = (Score *)mmap(0, sizeof(Score), PROT_READ, MAP_SHARED, score_mem_fd, 0);
     if (score == MAP_FAILED) {
         perror("[MAP]: Error mapping the score shared memory");
         LOG_TO_FILE(errors, "Error mapping the score shared memory");
@@ -427,7 +427,7 @@ int main(int argc, char *argv[]) {
     }
     // Unmap the shared memory regions.
     munmap(drone, sizeof(Drone));
-    munmap(score, sizeof(float));
+    munmap(score, sizeof(Score));
 
     // Close the log files.
     fclose(debug);
