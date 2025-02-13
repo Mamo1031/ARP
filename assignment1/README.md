@@ -17,6 +17,8 @@ assignment/
 │   └── watchdog
 ├── config/
 │   └── config.json
+├── images/
+│   └── assignment1.pdf
 ├── include/
 │   ├── cJSON.h
 │   └── utils.h
@@ -39,6 +41,7 @@ assignment/
 
 - **`bin/`**: Compiled executables.
 - **`config/config.json`**: Configuration parameters.
+- **`images/assignment1.pdf`**: Architecture sketch.
 - **`include/`**: Header files 
 - **`logs/`**: Log files.
 - **`src/`**: Source code for each component.
