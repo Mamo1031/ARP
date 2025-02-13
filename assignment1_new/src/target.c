@@ -40,6 +40,7 @@ int target_write_position_fd = -1;
  * as a string and writes it to the pipe identified by target_write_position_fd.
  */
 void generate_targets() {
+    int idx_target=1;
     // Create a local array to hold the generated targets.
     Object targets[N_TARGET];
     char targetStr[1024] = "";
@@ -53,10 +54,12 @@ void generate_targets() {
         targets[i].pos_y = arc4random_uniform(game.max_y - 2) + 1;
         targets[i].type = 't';      // 't' indicates a target.
         targets[i].hit = false;     // Initially, the target is not hit.
+        targets[i].number = idx_target;
+        idx_target++;
         
         // Format the target data as "x,y,type,hit" with a pipe separator for all but the last target.
-        sprintf(temp, (i + 1 != N_TARGET) ? "%d,%d,%c,%d|" : "%d,%d,%c,%d", 
-                targets[i].pos_x, targets[i].pos_y, targets[i].type, (int)targets[i].hit);
+        sprintf(temp, (i + 1 != N_TARGET) ? "%d,%d,%c,%d,%d|" : "%d,%d,%c,%d,%d", 
+                targets[i].pos_x, targets[i].pos_y, targets[i].type, (int)targets[i].hit, targets[i].number);
         strcat(targetStr, temp);
     }
     

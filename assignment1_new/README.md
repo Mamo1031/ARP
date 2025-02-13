@@ -212,4 +212,4 @@ Run :
 - Press `O` to start over the simulation.
 
 - Obstacles (red `"O"`) and geofences on the borders will repulse the drone.
-- Targets (green `"T"`) will attract the drone.
+- Targets (green _`"number"`_) will attract the drone.

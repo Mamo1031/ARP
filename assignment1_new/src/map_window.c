@@ -72,10 +72,12 @@ void render_obstacles(Object obstacles[]) {
  */
 void render_targets(Object targets[]) {
     attron(COLOR_PAIR(2));  // Use color pair 2 (green on black)
+    char nb[20];
     for (int i = 0; i < n_targ; i++) {
         if (targets[i].pos_y <= 0 || targets[i].pos_x <= 0)
             continue;
-        mvprintw(targets[i].pos_y, targets[i].pos_x, "T");
+        sprintf(nb, "%d", targets[i].number); // Change the index of the target as a string
+        mvprintw(targets[i].pos_y, targets[i].pos_x, nb);
     }
     attroff(COLOR_PAIR(2));
     refresh();
@@ -400,7 +402,7 @@ int main(int argc, char *argv[]) {
                     char *token = strtok(buffer, "|");
                     int i = 0;
                     while (token != NULL) {
-                        sscanf(token, "%d,%d,%c", &targets[i].pos_x, &targets[i].pos_y, &targets[i].type);
+                        sscanf(token, "%d,%d,%c,%d,%d", &targets[i].pos_x, &targets[i].pos_y, &targets[i].type, (int*)&targets[i].hit, &targets[i].number);
                         token = strtok(NULL, "|");
                         i++;
                     }

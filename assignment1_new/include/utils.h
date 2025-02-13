@@ -53,6 +53,7 @@ typedef struct {
     int pos_x, pos_y;         // Object position coordinates (x, y)
     char type;                // Type identifier (e.g., 'o' for obstacle; other characters for targets)
     bool hit;                 // Flag indicating if the object has been "hit" or activated
+    int number;             // Integer displayed to represent the object if it is a target
 } Object;
 
 // Structure representing the game boundaries.
