@@ -233,6 +233,7 @@ int main() {
 
     /* LAUNCH THE SERVER AND DRONE PROCESSES */
     pid_t pids[N_PROCS], wd;
+
     // Array of command-line argument arrays for each process (server, drone, obstacle, target)
     char *inputs[N_PROCS - 1][16] = {
         {"./bin/server", drone_write_size_fd_str, drone_write_key_fd_str, input_read_key_fd_str, obstacle_write_size_fd_str, obstacle_read_position_fd_str, target_write_size_fd_str, target_read_position_fd_str, drone_write_obstacles_fd_str, drone_write_targets_fd_str, pos_str, vel_str, force_str, n_obs, n_target, NULL}, 
@@ -284,6 +285,18 @@ int main() {
     } else {
         sem_wait(exec_sem);  // Wait for the keyboard manager process to start
         pids[N_PROCS - 1] = get_terminal_child(terminalProc);
+        // Save PIDs in a file
+        FILE *pid_file = fopen("pids.txt", "w");
+        if (pid_file == NULL) {
+            perror("Failed to open the file with PIDs");
+            exit(EXIT_FAILURE);
+        }
+        for (int i = 0; i < N_PROCS; i++) {
+            fprintf(pid_file, "%d\n", pids[i]);
+        }
+        fclose(pid_file);
+        printf("All PIDs were written into pids.txt\n");
+
     }
     
     usleep(500000); // Short delay

@@ -145,8 +145,9 @@ void create_keyboard_window(int rows, int cols) {
     // Draw borders and labels on the input window.
     box(input_window, 0, 0);
     mvwprintw(input_window, 0, 2, "Input Display");
-    mvwprintw(input_window, rows - 5, ((cols / 2) - 30) / 2, "Press 'D' to remove forces");
-    mvwprintw(input_window, rows - 3, ((cols / 2) - 30) / 2, "Press 'Q' to close");
+    mvwprintw(input_window, rows - 7, ((cols / 2) - 30) / 2, "Press 'F' to remove forces");
+    mvwprintw(input_window, rows - 5, ((cols / 2) - 30) / 2, "Press 'Q' to Quit");
+    mvwprintw(input_window, rows - 3, ((cols / 2) - 30) / 2, "Press 'O' to start Over");
     wrefresh(input_window);
 }
 
@@ -242,19 +243,34 @@ int open_drone_shared_memory() {
 }
 
 //---------------------------------------------------------------------
+// Function: restart_program
+// Description: Calls the executable which kill all processes and restart the simulation.
+//---------------------------------------------------------------------
+void restart_program() {
+    printf("Request to start over...\n");
+    system("./restart.sh");  // Execute the restart.sh script
+}
+
+//---------------------------------------------------------------------
 // Function: keyboard_manager
 // Description: Reads keyboard input using ncurses and writes the pressed key
 //              to the server pipe. The loop continues until the user presses 'Q' or 'q'.
 // Parameters:
 //   server_write_key_fd - File descriptor for writing the key to the server.
 //---------------------------------------------------------------------
-void keyboard_manager(int server_write_key_fd) {
+void keyboard_manager(int server_write_key_fd, char *argv[]) {
     int ch;
     while ((ch = getch()) != 'q' && ch != 'Q') {
         if (ch != EOF) {
+            if(ch == 'o' || ch == 'O'){ 
+                restart_program();
+            }
+            else{
             write(server_write_key_fd, &ch, sizeof(ch));
+            }
         }
     }
+
 }
 
 //---------------------------------------------------------------------
@@ -365,7 +381,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Launch the input manager loop.
-    keyboard_manager(server_write_key_fd);
+    keyboard_manager(server_write_key_fd, argv);
 
     // END PROGRAM:
     // Send termination signal to the watchdog.

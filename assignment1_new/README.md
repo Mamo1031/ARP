@@ -164,9 +164,10 @@ assignment/
 
 
 ## Prerequisites
-- **Konsole**: Ensure that Konsole is installed on your system.
+- **Konsole**: Ensure that Konsole is installed on your system and install wmctrl.
    ```bash
    sudo apt install konsole
+   sudo apt install wmctrl
    ```
 - **NCurses**: Ensure that NCurses is installed on your system.
    ```bash
@@ -207,7 +208,7 @@ Run :
 ```
 - Press the keys around the letter `F` to increase the force of command of the drone in this direction (`e/r/t/g/b/v/c/d`). _Compatible for keyboards of type QWERTY, AZERTY and QWERTZ._ The drone will be represented by an orange cross (`"+"`).
 - Press `F` to remove command forces.
-- Press `Q` to close.
+- Press `Q` to quit.
 
 - Obstacles (red `"O"`) and geofences on the borders will repulse the drone.
 - Targets (green `"T"`) will attract the drone.
