@@ -188,7 +188,7 @@ assignment/
 
 ## Building
 1. Ensure you have `gcc` and `make` installed.
-2. In the `assignment1_new/` directory, run:
+2. In the `assignment1/` directory, run:
    ```bash
    make
    ```
